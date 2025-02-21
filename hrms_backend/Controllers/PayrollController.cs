@@ -11,7 +11,7 @@ public class PayrollController : ControllerBase
     {
         _context = context;
     }
-    [HttpPost("calculatePayroll")]
+    /*[HttpPost("calculatePayroll")]
     public IActionResult CalculateAndSavePayroll([FromBody] PayrollRequest request)
     {
         if (request == null) return BadRequest("Invalid Request");
@@ -45,7 +45,7 @@ public class PayrollController : ControllerBase
             existingPayroll.PaidLeaves = request.PaidLeaves;
             existingPayroll.ProfessionalTax = request.ProfessionalTax;
             existingPayroll.IncomeTax = request.IncomeTax;
-            existingPayroll.Bonus = request.Bonus;
+            existingPayroll.Bonus = request.Bonus;    
             existingPayroll.Adjustments = request.Adjustments;
             existingPayroll.NetSalary = netSalary;
             _context.SaveChanges();
@@ -73,7 +73,91 @@ public class PayrollController : ControllerBase
             _context.SaveChanges();
             return Ok(new { message = "Payroll saved successfully", netSalary = netSalary });
         }
+    }*/
+
+    [HttpPost("calculatePayroll")]
+    public IActionResult CalculateAndSavePayroll([FromBody] PayrollRequest request)
+    {
+        if (request == null) return BadRequest("Invalid Request");
+
+        // Validate month range (1 to 12)
+        if (request.Month < 1 || request.Month > 12)
+        {
+            return BadRequest("Invalid month. Month should be between 1 and 12.");
+        }
+
+        // Validate year (reasonable range)
+        if (request.Year < 2000 || request.Year > DateTime.Now.Year)
+        {
+            return BadRequest("Invalid year.");
+        }
+
+        // Step 1: Pay Calculation
+        decimal payPerDay = request.GrossSalary / 25;
+
+        // Step 2: Convert Half Days into Full Leaves
+        int fullLeavesFromHalfDays = request.HalfDayLeaves / 2;
+        int remainingHalfDays = request.HalfDayLeaves % 2; // If 1 half-day remains, it will be counted separately
+
+        // Step 3: Total Leaves After Conversion
+        int totalEffectiveLeaves = request.TotalLeaves + fullLeavesFromHalfDays;
+
+        // Step 4: Deduct Paid Leaves
+        int unpaidLeaves = Math.Max(totalEffectiveLeaves - request.PaidLeaves, 0); // Leaves that are unpaid
+
+        // Step 5: Calculate Salary Deduction
+        decimal leaveDeduction = unpaidLeaves * payPerDay;  // Deduction for full unpaid leaves
+        decimal halfDayDeduction = remainingHalfDays * (payPerDay / 2); // Deduction for any remaining half-day
+
+        // Step 6: Final Salary Calculation
+        decimal netSalary = request.GrossSalary
+                            - (leaveDeduction + halfDayDeduction + request.ProfessionalTax + request.IncomeTax)
+                            + (request.Bonus + request.Adjustments);
+
+        // Step 7: Check if Payroll Exists
+        var existingPayroll = _context.Payrolls
+            .FirstOrDefault(p => p.EmployeeId == request.EmployeeId && p.Month == request.Month && p.Year == request.Year);
+
+        if (existingPayroll != null)
+        {
+            // Update existing payroll
+            existingPayroll.TotalLeaves = request.TotalLeaves;
+            existingPayroll.HalfDayLeaves = request.HalfDayLeaves;
+            existingPayroll.PaidLeaves = request.PaidLeaves;
+            existingPayroll.ProfessionalTax = request.ProfessionalTax;
+            existingPayroll.IncomeTax = request.IncomeTax;
+            existingPayroll.Bonus = request.Bonus;
+            existingPayroll.Adjustments = request.Adjustments;
+            existingPayroll.NetSalary = netSalary;
+
+            _context.SaveChanges();
+            return Ok(new { message = "Payroll updated successfully", netSalary = netSalary });
+        }
+        else
+        {
+            // Create a new payroll entry
+            var newPayroll = new Payroll
+            {
+                EmployeeId = request.EmployeeId,
+                Month = request.Month,
+                Year = request.Year,
+                GrossSalary = request.GrossSalary,
+                TotalLeaves = request.TotalLeaves,
+                HalfDayLeaves = request.HalfDayLeaves,
+                PaidLeaves = request.PaidLeaves,
+                ProfessionalTax = request.ProfessionalTax,
+                IncomeTax = request.IncomeTax,
+                Bonus = request.Bonus,
+                Adjustments = request.Adjustments,
+                NetSalary = netSalary
+            };
+
+            _context.Payrolls.Add(newPayroll);
+            _context.SaveChanges();
+            return Ok(new { message = "Payroll saved successfully", netSalary = netSalary });
+        }
     }
+
     [HttpPost("calculatePayrollBatch")]
     public IActionResult CalculateAndSavePayrollBatch([FromBody] List<PayrollRequest> requests)
     {
