@@ -241,7 +241,7 @@ public class PayrollController : ControllerBase
                 Month = month,
                 Year = year,
                 GrossSalary = employee.GrossSalary,
-                PaidLeaves = employee.PaidLeaves,
+                PaidLeaves = payroll?.PaidLeaves ?? employee.PaidLeaves, // Use payroll PaidLeaves if exists, else employee PaidLeaves
                 TotalLeaves = payroll?.TotalLeaves ?? 0,
                 HalfDayLeaves = payroll?.HalfDayLeaves ?? 0,
                 ProfessionalTax = payroll?.ProfessionalTax ?? 0,
