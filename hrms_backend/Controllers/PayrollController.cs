@@ -98,12 +98,18 @@ public class PayrollController : ControllerBase
         // Step 2: Convert Half Days into Full Leaves
         int fullLeavesFromHalfDays = request.HalfDayLeaves / 2;
         int remainingHalfDays = request.HalfDayLeaves % 2; // If 1 half-day remains, it will be counted separately
-
+        
         // Step 3: Total Leaves After Conversion
         int totalEffectiveLeaves = request.TotalLeaves + fullLeavesFromHalfDays;
 
+
         // Step 4: Deduct Paid Leaves
         int unpaidLeaves = Math.Max(totalEffectiveLeaves - request.PaidLeaves, 0); // Leaves that are unpaid
+                                                                                   // 🔹 Fix: Check if remaining half-day can be covered by paid leave
+        if (remainingHalfDays == 1 && request.PaidLeaves > totalEffectiveLeaves)
+        {
+            remainingHalfDays = 0; // Cover the half-day using paid leave
+        }
 
         // Step 5: Calculate Salary Deduction
         decimal leaveDeduction = unpaidLeaves * payPerDay;  // Deduction for full unpaid leaves
