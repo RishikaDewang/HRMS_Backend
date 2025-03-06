@@ -75,6 +75,10 @@ namespace hrms_backend.Controllers
                 // Set the reset token
                 employee.ResetToken = resetToken;
 
+                // Set GrossSalary and PaidLeaves
+                employee.GrossSalary = employee.GrossSalary; // Ensure this is coming from the request
+                employee.PaidLeaves = employee.PaidLeaves;
+
                 // Add the employee to the context
                 _dbContext.Employees.Add(employee);
                 // Create and add related Address object
@@ -156,12 +160,12 @@ namespace hrms_backend.Controllers
             using (var client = new SmtpClient("smtp.gmail.com"))
             {
                 // Set your SMTP credentials
-                client.Credentials = new NetworkCredential("dpatidar1221@gmail.com", "lveh yhaw szhz lydf");
+                client.Credentials = new NetworkCredential("rishika.dewang.averybit@gmail.com", "eulb duwg eaaq gtzp");
                 client.EnableSsl = true;
                 client.Port = 587;
 
                 // Set the sender and receiver email addresses
-                string fromEmail = "dpatidar1221@gmail.com";
+                string fromEmail = "rishika.dewang.averybit@gmail.com";
                 MailAddress from = new MailAddress(fromEmail, "HRMS SUPPORT");
 
                 // Ensure that the toEmail is not empty or null
