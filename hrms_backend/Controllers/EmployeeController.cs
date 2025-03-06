@@ -240,6 +240,9 @@ namespace hrms_backend.Controllers
                 existingEmployee.Email = updatedEmployeeDto.Email;
                 existingEmployee.LineManagerId = updatedEmployeeDto.LineManagerId;
                 existingEmployee.fk_role_id = updatedEmployeeDto.FkRoleId;
+                existingEmployee.GrossSalary = updatedEmployeeDto.GrossSalary; // ✅ Update Gross Salary
+                existingEmployee.PaidLeaves = updatedEmployeeDto.PaidLeaves;   // ✅ Update Paid Leaves
+
 
                 // Save all changes to the database
                 _dbContext.SaveChanges();
@@ -259,6 +262,9 @@ namespace hrms_backend.Controllers
             public string Email { get; set; }
             public int LineManagerId { get; set; }
             public int FkRoleId { get; set; }
+
+            public decimal GrossSalary { get; set; } // ✅ New property for Gross Salary
+            public int PaidLeaves { get; set; } // ✅ New property for Paid Leaves
         }
 
         public enum UserRole
