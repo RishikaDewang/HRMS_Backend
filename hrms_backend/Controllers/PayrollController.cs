@@ -1,13 +1,8 @@
 ﻿using hrms_backend.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-[Authorize]
-
-[Route("api/payroll")]
 [ApiController]
-
-
+[Route("api/payroll")]
 public class PayrollController : ControllerBase
 {
     private readonly HrmsDbContext _context;
@@ -227,35 +222,18 @@ public class PayrollController : ControllerBase
     [HttpGet("getPayroll")]
     public IActionResult GetPayrollData(int month, int year)
     {
-        var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "CompanyId");
-
-        if (companyIdClaim == null || !int.TryParse(companyIdClaim.Value, out int companyId))
-        {
-            // Handle the case where company information is not available in the token
-            return BadRequest("Invalid data. Company information is missing.");
-        }
-
-        // Fetch only employees for the logged-in company
-        var employees = _context.Employees
-            .Where(e => e.FkCompanyId == companyId) // ✅ Filter employees by companyId
+        var payrolls = _context.Payrolls
+            .Where(p => p.Month == month && p.Year == year)
             .ToList();
-
+        var employees = _context.Employees.ToList();
         if (!employees.Any())
         {
-            return NotFound("No employees found for this company.");
+            return NotFound("No employees found.");
         }
-
-        // Fetch payroll data only for these employees
-        var employeeIds = employees.Select(e => e.EmployeeId).ToList();
-        var payrolls = _context.Payrolls
-            .Where(p => p.Month == month && p.Year == year && employeeIds.Contains(p.EmployeeId)) // ✅ Fetch payroll only for the filtered employees
-            .ToList();
-
         var response = employees.Select(employee =>
         {
             var payroll = payrolls.FirstOrDefault(p => p.EmployeeId == employee.EmployeeId);
             bool isEditable = payroll == null; // If payroll exists, make it non-editable
-
             return new
             {
                 EmployeeId = employee.EmployeeId,
@@ -274,14 +252,11 @@ public class PayrollController : ControllerBase
                 IsEditable = isEditable // New flag to control UI editability
             };
         }).ToList();
-
         return Ok(response);
     }
 }
-
-
-    // Model to Accept Data from Frontend
-    public class PayrollRequest
+// Model to Accept Data from Frontend
+public class PayrollRequest
 {
     public int EmployeeId { get; set; }
     public decimal GrossSalary { get; set; }
