@@ -75,6 +75,10 @@ namespace hrms_backend.Controllers
                 // Set the reset token
                 employee.ResetToken = resetToken;
 
+                // Set GrossSalary and PaidLeaves
+                employee.GrossSalary = employee.GrossSalary; // Ensure this is coming from the request
+                employee.PaidLeaves = employee.PaidLeaves;
+
                 // Add the employee to the context
                 _dbContext.Employees.Add(employee);
                 // Create and add related Address object
@@ -156,12 +160,12 @@ namespace hrms_backend.Controllers
             using (var client = new SmtpClient("smtp.gmail.com"))
             {
                 // Set your SMTP credentials
-                client.Credentials = new NetworkCredential("dpatidar1221@gmail.com", "lveh yhaw szhz lydf");
+                client.Credentials = new NetworkCredential("rishika.dewang.averybit@gmail.com", "eulb duwg eaaq gtzp");
                 client.EnableSsl = true;
                 client.Port = 587;
 
                 // Set the sender and receiver email addresses
-                string fromEmail = "dpatidar1221@gmail.com";
+                string fromEmail = "rishika.dewang.averybit@gmail.com";
                 MailAddress from = new MailAddress(fromEmail, "HRMS SUPPORT");
 
                 // Ensure that the toEmail is not empty or null
@@ -236,6 +240,9 @@ namespace hrms_backend.Controllers
                 existingEmployee.Email = updatedEmployeeDto.Email;
                 existingEmployee.LineManagerId = updatedEmployeeDto.LineManagerId;
                 existingEmployee.fk_role_id = updatedEmployeeDto.FkRoleId;
+                existingEmployee.GrossSalary = updatedEmployeeDto.GrossSalary; // ✅ Update Gross Salary
+                existingEmployee.PaidLeaves = updatedEmployeeDto.PaidLeaves;   // ✅ Update Paid Leaves
+
 
                 // Save all changes to the database
                 _dbContext.SaveChanges();
@@ -255,6 +262,9 @@ namespace hrms_backend.Controllers
             public string Email { get; set; }
             public int LineManagerId { get; set; }
             public int FkRoleId { get; set; }
+
+            public decimal GrossSalary { get; set; } // ✅ New property for Gross Salary
+            public int PaidLeaves { get; set; } // ✅ New property for Paid Leaves
         }
 
         public enum UserRole
